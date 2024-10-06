@@ -7,11 +7,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductsModule = void 0;
+const path_1 = require("path");
 const common_1 = require("@nestjs/common");
+const microservices_1 = require("@nestjs/microservices");
 const products_service_1 = require("./products.service");
 const products_controller_1 = require("./products.controller");
-const microservices_1 = require("@nestjs/microservices");
-const path_1 = require("path");
+const products_1 = require("../types/products");
 let ProductsModule = class ProductsModule {
 };
 exports.ProductsModule = ProductsModule;
@@ -22,7 +23,7 @@ exports.ProductsModule = ProductsModule = __decorate([
         imports: [
             microservices_1.ClientsModule.register([
                 {
-                    name: 'PRODUCTS_PACKAGE',
+                    name: products_1.PRODUCTS_PACKAGE_NAME,
                     transport: microservices_1.Transport.GRPC,
                     options: {
                         package: 'products',

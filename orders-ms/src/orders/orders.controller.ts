@@ -1,14 +1,26 @@
 import { Controller } from '@nestjs/common';
-import { GrpcMethod, MessagePattern, Payload } from '@nestjs/microservices';
+import { GrpcMethod } from '@nestjs/microservices';
+import { Observable } from 'rxjs';
+
 import { OrdersService } from './orders.service';
-import { GetOrderRequest } from 'src/types/orders';
+import {
+  GetOrderRequest,
+  GetOrderResponse,
+  ORDERS_SERVICE_NAME,
+  OrdersServiceController,
+} from 'src/types/orders';
 
 @Controller()
-export class OrdersController {
+export class OrdersController implements OrdersServiceController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  @GrpcMethod('OrdersService', 'GetOrder')
-  getOrder(@Payload() data: GetOrderRequest) {
-    return this.ordersService.getOrder(data.orderId);
+  @GrpcMethod(ORDERS_SERVICE_NAME, 'GetOrder')
+  getOrder(
+    request: GetOrderRequest,
+  ):
+    | Promise<GetOrderResponse>
+    | Observable<GetOrderResponse>
+    | GetOrderResponse {
+    return this.ordersService.getOrder(request.orderId);
   }
 }

@@ -1,8 +1,10 @@
+import { join } from 'path';
 import { Module } from '@nestjs/common';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+
 import { ProductsService } from './products.service';
 import { ProductsController } from './products.controller';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { join } from 'path';
+import { PRODUCTS_PACKAGE_NAME } from 'src/types/products';
 
 @Module({
   controllers: [ProductsController],
@@ -10,7 +12,7 @@ import { join } from 'path';
   imports: [
     ClientsModule.register([
       {
-        name: 'PRODUCTS_PACKAGE',
+        name: PRODUCTS_PACKAGE_NAME,
         transport: Transport.GRPC,
         options: {
           package: 'products',

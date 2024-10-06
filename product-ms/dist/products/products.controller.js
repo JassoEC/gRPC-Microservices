@@ -13,6 +13,7 @@ exports.ProductsController = void 0;
 const common_1 = require("@nestjs/common");
 const microservices_1 = require("@nestjs/microservices");
 const grpc_js_1 = require("@grpc/grpc-js");
+const types_1 = require("../types");
 let ProductsController = class ProductsController {
     getProduct(data, metadata, call) {
         const { productId } = data;
@@ -27,7 +28,7 @@ let ProductsController = class ProductsController {
 };
 exports.ProductsController = ProductsController;
 __decorate([
-    (0, microservices_1.GrpcMethod)('ProductsService', 'GetProduct'),
+    (0, microservices_1.GrpcMethod)(types_1.PRODUCTS_SERVICE_NAME, 'GetProduct'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, grpc_js_1.Metadata, Object]),
     __metadata("design:returntype", Object)

@@ -22,26 +22,14 @@ let ProductsService = class ProductsService {
     onModuleInit() {
         this.service = this.client.getService(products_1.PRODUCTS_SERVICE_NAME);
     }
-    create(createProductDto) {
-        return 'This action adds a new product';
-    }
-    findAll() {
-        return `This action returns all products`;
-    }
     findOne(id) {
         return this.service.getProduct({ productId: id });
-    }
-    update(id, updateProductDto) {
-        return `This action updates a #${id} product`;
-    }
-    remove(id) {
-        return `This action removes a #${id} product`;
     }
 };
 exports.ProductsService = ProductsService;
 exports.ProductsService = ProductsService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, common_1.Inject)('PRODUCTS_PACKAGE')),
+    __param(0, (0, common_1.Inject)(products_1.PRODUCTS_PACKAGE_NAME)),
     __metadata("design:paramtypes", [Object])
 ], ProductsService);
 //# sourceMappingURL=products.service.js.map

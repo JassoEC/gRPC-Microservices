@@ -12,7 +12,12 @@ let OrdersService = class OrdersService {
     getOrder(orderId) {
         return {
             orderId,
-            items: [],
+            items: [
+                {
+                    productId: '1',
+                    quantity: 1,
+                },
+            ],
         };
     }
 };

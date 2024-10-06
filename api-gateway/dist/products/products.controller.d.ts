@@ -2,5 +2,5 @@ import { ProductsService } from './products.service';
 export declare class ProductsController {
     private readonly productsService;
     constructor(productsService: ProductsService);
-    getProducts(id: string): import("rxjs").Observable<import("../types/products").GetProductResponse>;
+    getProduct(id: string): import("rxjs").Observable<import("../types/products").GetProductResponse>;
 }

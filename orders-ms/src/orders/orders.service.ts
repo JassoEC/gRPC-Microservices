@@ -6,7 +6,12 @@ export class OrdersService {
   getOrder(orderId: string): GetOrderResponse {
     return {
       orderId,
-      items: [],
+      items: [
+        {
+          productId: '1',
+          quantity: 1,
+        },
+      ],
     };
   }
 }

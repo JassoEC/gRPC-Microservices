@@ -1,13 +1,18 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { Metadata, ServerUnaryCall } from '@grpc/grpc-js';
-import { GetProductRequest, GetProductResponse, Product } from 'src/types';
+import {
+  GetProductRequest,
+  GetProductResponse,
+  Product,
+  PRODUCTS_SERVICE_NAME,
+} from 'src/types';
 
 @Controller()
 export class ProductsController {
   // constructor(private readonly productsService: ProductsService) {}
 
-  @GrpcMethod('ProductsService', 'GetProduct')
+  @GrpcMethod(PRODUCTS_SERVICE_NAME, 'GetProduct')
   getProduct(
     data: GetProductRequest,
     metadata: Metadata,

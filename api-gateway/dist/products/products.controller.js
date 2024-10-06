@@ -19,7 +19,7 @@ let ProductsController = class ProductsController {
     constructor(productsService) {
         this.productsService = productsService;
     }
-    getProducts(id) {
+    getProduct(id) {
         return this.productsService.findOne(id);
     }
 };
@@ -30,7 +30,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
-], ProductsController.prototype, "getProducts", null);
+], ProductsController.prototype, "getProduct", null);
 exports.ProductsController = ProductsController = __decorate([
     (0, common_1.Controller)('products'),
     __metadata("design:paramtypes", [products_service_1.ProductsService])
