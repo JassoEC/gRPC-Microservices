@@ -3,7 +3,7 @@ import { OrdersService } from './orders.service';
 import { OrdersServiceControllerMethods } from 'src/types/orders';
 
 @Controller('orders')
-// @OrdersServiceControllerMethods()
+@OrdersServiceControllerMethods()
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
