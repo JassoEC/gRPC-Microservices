@@ -13,6 +13,7 @@ async function bootstrap() {
             url: 'localhost:5001',
         },
     });
+    await app.listen();
 }
 bootstrap();
 //# sourceMappingURL=main.js.map
