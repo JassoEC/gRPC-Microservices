@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+  orders-db:
+    container_name: orders-db
+    image: postgres:16.2
+    restart: always
+    volumes:
+      - ./data/orders:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: orders
+      POSTGRES_PASSWORD: orders
+      POSTGRES_DB: orders
+
+  products-db:
+    container_name: products-db
+    image: postgres:16.2
+    restart: always
+    volumes:
+      - ./data/products:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: products
+      POSTGRES_PASSWORD: products
+      POSTGRES_DB: products

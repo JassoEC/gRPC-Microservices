@@ -4,18 +4,34 @@ package products;
 
 
 service ProductsService {
-  rpc GetProduct (GetProductRequest) returns (GetProductResponse) {}
+  rpc GetProduct (FindProductRequest) returns (ProductResponse) {}
+  rpc CreateProduct (CreateProductRequest) returns (ProductResponse) {}
+  rpc UpdateProduct (UpdateProductRequest) returns (ProductResponse) {}
+  rpc DeleteProduct (FindProductRequest) returns (ProductResponse) {}
 }
 
-message GetProductRequest {
+message FindProductRequest {
   string product_id = 1;
 }
 
-message GetProductResponse {
+message ProductResponse {
   Product product = 2;
 }
 
 message Product {
+  string product_id = 1;
+  string name = 2;
+  string description = 3;
+  float price = 4;
+}
+
+message CreateProductRequest {
+  string name = 1;
+  string description = 2;
+  float price = 3;
+}
+
+message UpdateProductRequest {
   string product_id = 1;
   string name = 2;
   string description = 3;
