@@ -8,6 +8,7 @@ import {
   OrderResponse,
   OrdersServiceClient,
 } from 'src/types/orders';
+import { ProductsService } from './products/products.service';
 
 @Injectable()
 export class OrdersService
@@ -16,22 +17,37 @@ export class OrdersService
 {
   private logger = new Logger('OrdersService');
 
+  constructor(private readonly products: ProductsService) {
+    super();
+  }
+
   async onModuleInit() {
     await this.$connect();
   }
 
   createOrder(request: CreateOrderRequest): Observable<OrderResponse> {
-    const newOrderPromise = this.order.create({
-      data: {
-        createdAt: request.createdAt,
-        delivered: request.delivered,
-        items: {
-          create: request.items.map((item) => ({
-            quantity: item.quantity,
-            productId: item.productId,
-          })),
+    let orderId: string = undefined;
+
+    this.order
+      .create({
+        data: {
+          createdAt: request.createdAt,
+          delivered: request.delivered,
+          items: {
+            create: request.items.map((item) => ({
+              quantity: item.quantity,
+              productId: item.productId,
+            })),
+          },
         },
-      },
+      })
+      .then((order) => (orderId = order.id));
+
+    console.log('Order created with ID:', orderId);
+
+    const newOrderPromise = this.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
     });
 
     return from(newOrderPromise).pipe(
@@ -41,11 +57,13 @@ export class OrdersService
           createdAt: order.createdAt,
           delivered: order.delivered,
         },
-        items: [],
+        items: order.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          orderId: item.orderId,
+        })),
       })),
     );
-
-    return undefined;
   }
 
   getOrder(request: GetOrderRequest): Observable<OrderResponse> {
