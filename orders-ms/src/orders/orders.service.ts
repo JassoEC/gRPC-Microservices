@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
-import { from, map, Observable } from 'rxjs';
+import { Order, PrismaClient } from '@prisma/client';
+import { catchError, from, map, Observable } from 'rxjs';
 
 import {
   CreateOrderRequest,
@@ -9,6 +9,7 @@ import {
   OrdersServiceClient,
 } from 'src/types/orders';
 import { ProductsService } from './products/products.service';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class OrdersService
@@ -26,44 +27,48 @@ export class OrdersService
   }
 
   createOrder(request: CreateOrderRequest): Observable<OrderResponse> {
-    let orderId: string = undefined;
+    const { items } = request;
 
-    this.order
-      .create({
-        data: {
-          createdAt: request.createdAt,
-          delivered: request.delivered,
-          items: {
-            create: request.items.map((item) => ({
-              quantity: item.quantity,
-              productId: item.productId,
-            })),
+    return new Observable((observer) => {
+      items.forEach((item) => {
+        const product = this.products.getProduct(item.productId);
+
+        product.subscribe({
+          error: (error) => observer.error(new RpcException(error)),
+        });
+      });
+
+      this.order
+        .create({
+          data: {
+            delivered: false,
+            createdAt: new Date(request.createdAt).toString(),
+            items: {
+              create: items.map((item) => ({
+                productId: item.productId,
+                quantity: item.quantity,
+              })),
+            },
           },
-        },
-      })
-      .then((order) => (orderId = order.id));
-
-    console.log('Order created with ID:', orderId);
-
-    const newOrderPromise = this.order.findUnique({
-      where: { id: orderId },
-      include: { items: true },
+          include: { items: true },
+        })
+        .then((order) => {
+          const response = {
+            order: {
+              orderId: order.id,
+              createdAt: order.createdAt,
+              delivered: order.delivered,
+            },
+            items: order.items.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              orderId: item.orderId,
+            })),
+          };
+          observer.next(response);
+          observer.complete();
+        });
     });
-
-    return from(newOrderPromise).pipe(
-      map((order) => ({
-        order: {
-          orderId: order.id,
-          createdAt: order.createdAt,
-          delivered: order.delivered,
-        },
-        items: order.items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          orderId: item.orderId,
-        })),
-      })),
-    );
   }
 
   getOrder(request: GetOrderRequest): Observable<OrderResponse> {

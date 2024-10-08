@@ -14,6 +14,7 @@ const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
 const rxjs_1 = require("rxjs");
 const products_service_1 = require("./products/products.service");
+const microservices_1 = require("@nestjs/microservices");
 let OrdersService = class OrdersService extends client_1.PrismaClient {
     constructor(products) {
         super();
@@ -24,38 +25,45 @@ let OrdersService = class OrdersService extends client_1.PrismaClient {
         await this.$connect();
     }
     createOrder(request) {
-        let orderId = undefined;
-        this.order
-            .create({
-            data: {
-                createdAt: request.createdAt,
-                delivered: request.delivered,
-                items: {
-                    create: request.items.map((item) => ({
-                        quantity: item.quantity,
-                        productId: item.productId,
-                    })),
+        const { items } = request;
+        return new rxjs_1.Observable((observer) => {
+            items.forEach((item) => {
+                const product = this.products.getProduct(item.productId);
+                product.subscribe({
+                    error: (error) => observer.error(new microservices_1.RpcException(error)),
+                });
+            });
+            this.order
+                .create({
+                data: {
+                    delivered: false,
+                    createdAt: new Date(request.createdAt).toString(),
+                    items: {
+                        create: items.map((item) => ({
+                            productId: item.productId,
+                            quantity: item.quantity,
+                        })),
+                    },
                 },
-            },
-        })
-            .then((order) => (orderId = order.id));
-        console.log('Order created with ID:', orderId);
-        const newOrderPromise = this.order.findUnique({
-            where: { id: orderId },
-            include: { items: true },
+                include: { items: true },
+            })
+                .then((order) => {
+                const response = {
+                    order: {
+                        orderId: order.id,
+                        createdAt: order.createdAt,
+                        delivered: order.delivered,
+                    },
+                    items: order.items.map((item) => ({
+                        productId: item.productId,
+                        quantity: item.quantity,
+                        orderId: item.orderId,
+                    })),
+                };
+                observer.next(response);
+                observer.complete();
+            });
         });
-        return (0, rxjs_1.from)(newOrderPromise).pipe((0, rxjs_1.map)((order) => ({
-            order: {
-                orderId: order.id,
-                createdAt: order.createdAt,
-                delivered: order.delivered,
-            },
-            items: order.items.map((item) => ({
-                productId: item.productId,
-                quantity: item.quantity,
-                orderId: item.orderId,
-            })),
-        })));
     }
     getOrder(request) {
         const orderPromise = this.order.findUnique({
