@@ -8,17 +8,56 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrdersService = void 0;
 const common_1 = require("@nestjs/common");
-let OrdersService = class OrdersService {
-    getOrder(orderId) {
-        return {
-            orderId,
-            items: [
-                {
-                    productId: '1',
-                    quantity: 1,
+const client_1 = require("@prisma/client");
+const rxjs_1 = require("rxjs");
+let OrdersService = class OrdersService extends client_1.PrismaClient {
+    constructor() {
+        super(...arguments);
+        this.logger = new common_1.Logger('OrdersService');
+    }
+    async onModuleInit() {
+        await this.$connect();
+    }
+    createOrder(request) {
+        const newOrderPromise = this.order.create({
+            data: {
+                createdAt: request.createdAt,
+                delivered: request.delivered,
+                items: {
+                    create: request.items.map((item) => ({
+                        quantity: item.quantity,
+                        productId: item.productId,
+                    })),
                 },
-            ],
-        };
+            },
+        });
+        return (0, rxjs_1.from)(newOrderPromise).pipe((0, rxjs_1.map)((order) => ({
+            order: {
+                orderId: order.id,
+                createdAt: order.createdAt,
+                delivered: order.delivered,
+            },
+            items: [],
+        })));
+        return undefined;
+    }
+    getOrder(request) {
+        const orderPromise = this.order.findUnique({
+            where: { id: request.orderId },
+            include: { items: true },
+        });
+        return (0, rxjs_1.from)(orderPromise).pipe((0, rxjs_1.map)((order) => ({
+            order: {
+                orderId: order.id,
+                createdAt: order.createdAt,
+                delivered: order.delivered,
+            },
+            items: order.items.map((item) => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                orderId: item.orderId,
+            })),
+        })));
     }
 };
 exports.OrdersService = OrdersService;

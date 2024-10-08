@@ -1,8 +1,9 @@
 import { Observable } from 'rxjs';
 import { OrdersService } from './orders.service';
-import { GetOrderRequest, GetOrderResponse, OrdersServiceController } from 'src/types/orders';
+import { CreateOrderRequest, GetOrderRequest, OrderResponse, OrdersServiceController } from 'src/types/orders';
 export declare class OrdersController implements OrdersServiceController {
     private readonly ordersService;
     constructor(ordersService: OrdersService);
-    getOrder(request: GetOrderRequest): Promise<GetOrderResponse> | Observable<GetOrderResponse> | GetOrderResponse;
+    createOrder(request: CreateOrderRequest): Promise<OrderResponse> | Observable<OrderResponse> | OrderResponse;
+    getOrder(request: GetOrderRequest): Promise<OrderResponse> | Observable<OrderResponse> | OrderResponse;
 }

@@ -3,20 +3,33 @@ export declare const protobufPackage = "orders";
 export interface GetOrderRequest {
     orderId: string;
 }
-export interface GetOrderResponse {
-    orderId: string;
+export interface OrderResponse {
+    order: Order | undefined;
     items: OrderItem[];
+}
+export interface Order {
+    orderId: string;
+    createdAt: string;
+    delivered: boolean;
 }
 export interface OrderItem {
     productId: string;
     quantity: number;
+    orderId: string;
+}
+export interface CreateOrderRequest {
+    createdAt: string;
+    delivered: boolean;
+    items: OrderItem[];
 }
 export declare const ORDERS_PACKAGE_NAME = "orders";
 export interface OrdersServiceClient {
-    getOrder(request: GetOrderRequest): Observable<GetOrderResponse>;
+    getOrder(request: GetOrderRequest): Observable<OrderResponse>;
+    createOrder(request: CreateOrderRequest): Observable<OrderResponse>;
 }
 export interface OrdersServiceController {
-    getOrder(request: GetOrderRequest): Promise<GetOrderResponse> | Observable<GetOrderResponse> | GetOrderResponse;
+    getOrder(request: GetOrderRequest): Promise<OrderResponse> | Observable<OrderResponse> | OrderResponse;
+    createOrder(request: CreateOrderRequest): Promise<OrderResponse> | Observable<OrderResponse> | OrderResponse;
 }
 export declare function OrdersServiceControllerMethods(): (constructor: Function) => void;
 export declare const ORDERS_SERVICE_NAME = "OrdersService";

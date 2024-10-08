@@ -4,8 +4,9 @@ import { Observable } from 'rxjs';
 
 import { OrdersService } from './orders.service';
 import {
+  CreateOrderRequest,
   GetOrderRequest,
-  GetOrderResponse,
+  OrderResponse,
   ORDERS_SERVICE_NAME,
   OrdersServiceController,
 } from 'src/types/orders';
@@ -14,13 +15,17 @@ import {
 export class OrdersController implements OrdersServiceController {
   constructor(private readonly ordersService: OrdersService) {}
 
+  @GrpcMethod(ORDERS_SERVICE_NAME, 'CreateOrder')
+  createOrder(
+    request: CreateOrderRequest,
+  ): Promise<OrderResponse> | Observable<OrderResponse> | OrderResponse {
+    return this.ordersService.createOrder(request);
+  }
+
   @GrpcMethod(ORDERS_SERVICE_NAME, 'GetOrder')
   getOrder(
     request: GetOrderRequest,
-  ):
-    | Promise<GetOrderResponse>
-    | Observable<GetOrderResponse>
-    | GetOrderResponse {
-    return this.ordersService.getOrder(request.orderId);
+  ): Promise<OrderResponse> | Observable<OrderResponse> | OrderResponse {
+    return this.ordersService.getOrder(request);
   }
 }

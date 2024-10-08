@@ -18,11 +18,20 @@ let OrdersController = class OrdersController {
     constructor(ordersService) {
         this.ordersService = ordersService;
     }
+    createOrder(request) {
+        return this.ordersService.createOrder(request);
+    }
     getOrder(request) {
-        return this.ordersService.getOrder(request.orderId);
+        return this.ordersService.getOrder(request);
     }
 };
 exports.OrdersController = OrdersController;
+__decorate([
+    (0, microservices_1.GrpcMethod)(orders_1.ORDERS_SERVICE_NAME, 'CreateOrder'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Object)
+], OrdersController.prototype, "createOrder", null);
 __decorate([
     (0, microservices_1.GrpcMethod)(orders_1.ORDERS_SERVICE_NAME, 'GetOrder'),
     __metadata("design:type", Function),

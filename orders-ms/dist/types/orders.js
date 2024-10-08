@@ -7,7 +7,7 @@ exports.protobufPackage = "orders";
 exports.ORDERS_PACKAGE_NAME = "orders";
 function OrdersServiceControllerMethods() {
     return function (constructor) {
-        const grpcMethods = ["getOrder"];
+        const grpcMethods = ["getOrder", "createOrder"];
         for (const method of grpcMethods) {
             const descriptor = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
             (0, microservices_1.GrpcMethod)("OrdersService", method)(constructor.prototype[method], method, descriptor);
