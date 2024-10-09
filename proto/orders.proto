@@ -2,6 +2,8 @@ syntax  = "proto3";
 
 package orders;
 
+option go_package = "protos/orders";
+
 service OrdersService {
   rpc GetOrder (GetOrderRequest) returns (OrderResponse) {}
   rpc CreateOrder (CreateOrderRequest) returns (OrderResponse) {}
