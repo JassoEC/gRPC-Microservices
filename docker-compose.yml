@@ -1,8 +1,8 @@
 version: "3"
 
 services:
-  orders-db:
-    container_name: orders-db
+  ordersdb:
+    container_name: ordersdb
     image: postgres:16.2
     restart: always
     volumes:
@@ -13,16 +13,39 @@ services:
       POSTGRES_USER: orders
       POSTGRES_PASSWORD: orders
       POSTGRES_DB: orders
+    networks:
+      - grpc-network
 
-  products-db:
-    container_name: products-db
+  productsdb:
+    container_name: productsdb
     image: postgres:16.2
     restart: always
     volumes:
       - ./data/products:/var/lib/postgresql/data
     ports:
-      - "5433:5432"
+      - "5434:5432"
     environment:
       POSTGRES_USER: products
       POSTGRES_PASSWORD: products
       POSTGRES_DB: products
+    networks:
+      - grpc-network
+
+  products-service:
+    build:
+      context: ./product-ms
+    restart: always
+    container_name: products_microservice
+    ports:
+      - '5500:5000'
+    depends_on:
+      - productsdb
+    environment:
+      - DATABASE_URL=postgresql://products:products@productsdb:5434/products?schema=public&conection_timeout=300
+    command: "npm run start:dev"
+    networks:
+      - grpc-network
+
+networks:
+  grpc-network:
+    driver: bridge
