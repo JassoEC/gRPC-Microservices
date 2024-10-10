@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Order, PrismaClient } from '@prisma/client';
-import { catchError, from, map, Observable } from 'rxjs';
+import { PrismaClient } from '@prisma/client';
+import { from, map, Observable } from 'rxjs';
 
 import {
   CreateOrderRequest,
@@ -10,6 +10,7 @@ import {
 } from 'src/types/orders';
 import { ProductsService } from './products/products.service';
 import { RpcException } from '@nestjs/microservices';
+import { Product } from 'src/types/products';
 
 @Injectable()
 export class OrdersService
@@ -29,11 +30,23 @@ export class OrdersService
   createOrder(request: CreateOrderRequest): Observable<OrderResponse> {
     const { items } = request;
 
+    const products: Product[] = [];
+
     return new Observable((observer) => {
       items.forEach((item) => {
-        const product = this.products.getProduct(item.productId);
+        const product$ = this.getProduct(item.productId); // Product
 
-        product.subscribe({
+        product$.subscribe({
+          next: (product) => {
+            if (product.availableQuantity < item.quantity) {
+              observer.error(
+                new RpcException(
+                  `Not enough stock for product ${item.productId}`,
+                ),
+              );
+            }
+            products.push(product);
+          },
           error: (error) => observer.error(new RpcException(error)),
         });
       });
@@ -63,6 +76,9 @@ export class OrdersService
               productId: item.productId,
               quantity: item.quantity,
               orderId: item.orderId,
+              product: products.find(
+                (product) => product.productId === item.productId,
+              ),
             })),
           };
           observer.next(response);
@@ -91,5 +107,11 @@ export class OrdersService
         })),
       })),
     );
+  }
+
+  getProduct(productId: string): Observable<Product> {
+    const promise = this.products.getProduct(productId);
+
+    return from(promise).pipe(map(({ product }): Product => product));
   }
 }

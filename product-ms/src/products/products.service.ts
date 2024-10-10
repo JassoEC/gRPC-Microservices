@@ -6,6 +6,8 @@ import { catchError, from, map, Observable } from 'rxjs';
 import {
   CreateProductRequest,
   FindProductRequest,
+  ListProductsRequest,
+  ListProductsResponse,
   ProductResponse,
   ProductsServiceClient,
   UpdateProductRequest,
@@ -20,6 +22,33 @@ export class ProductsService
 
   async onModuleInit() {
     await this.$connect();
+  }
+
+  listProducts(request: ListProductsRequest): Observable<ListProductsResponse> {
+    const { ids } = request;
+    const promise = this.product.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
+
+    return from(promise).pipe(
+      map((products) => ({
+        products: products.map((product) => ({
+          productId: product.id,
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          availableQuantity: product.available_quantity,
+        })),
+      })),
+      catchError((error) => {
+        this.logger.error(error);
+        throw new RpcException(`Could not list products`);
+      }),
+    );
   }
 
   getProduct(request: FindProductRequest): Observable<ProductResponse> {

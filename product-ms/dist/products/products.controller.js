@@ -18,6 +18,9 @@ let ProductsController = class ProductsController {
     constructor(productsService) {
         this.productsService = productsService;
     }
+    listProducts(request) {
+        return this.productsService.listProducts(request);
+    }
     getProduct(request) {
         return this.productsService.getProduct(request);
     }
@@ -32,6 +35,12 @@ let ProductsController = class ProductsController {
     }
 };
 exports.ProductsController = ProductsController;
+__decorate([
+    (0, microservices_1.GrpcMethod)(types_1.PRODUCTS_SERVICE_NAME, 'ListProducts'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Object)
+], ProductsController.prototype, "listProducts", null);
 __decorate([
     (0, microservices_1.GrpcMethod)(types_1.PRODUCTS_SERVICE_NAME, 'GetProduct'),
     __metadata("design:type", Function),

@@ -7,6 +7,7 @@
 /* eslint-disable */
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { Observable } from "rxjs";
+import { Product } from "./products";
 
 export const protobufPackage = "orders";
 
@@ -29,6 +30,7 @@ export interface OrderItem {
   productId: string;
   quantity: number;
   orderId: string;
+  product: Product | undefined;
 }
 
 export interface CreateOrderRequest {

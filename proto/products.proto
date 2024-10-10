@@ -9,6 +9,7 @@ service ProductsService {
   rpc CreateProduct (CreateProductRequest) returns (ProductResponse) {}
   rpc UpdateProduct (UpdateProductRequest) returns (ProductResponse) {}
   rpc DeleteProduct (FindProductRequest) returns (ProductResponse) {}
+  rpc ListProducts (ListProductsRequest) returns (ListProductsResponse) {}
 }
 
 message FindProductRequest {
@@ -41,3 +42,12 @@ message UpdateProductRequest {
   float price = 4;
   int32 available_quantity = 5;
 }
+
+message ListProductsRequest {
+  repeated string ids = 1;
+}
+
+message ListProductsResponse {
+  repeated Product products = 1;
+}
+

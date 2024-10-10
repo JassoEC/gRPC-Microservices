@@ -23,12 +23,14 @@ export interface Product {
   name: string;
   description: string;
   price: number;
+  availableQuantity: number;
 }
 
 export interface CreateProductRequest {
   name: string;
   description: string;
   price: number;
+  availableQuantity: number;
 }
 
 export interface UpdateProductRequest {
@@ -36,6 +38,7 @@ export interface UpdateProductRequest {
   name: string;
   description: string;
   price: number;
+  availableQuantity: number;
 }
 
 export const PRODUCTS_PACKAGE_NAME = "products";

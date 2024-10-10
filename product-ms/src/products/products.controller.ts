@@ -5,6 +5,8 @@ import { Observable } from 'rxjs';
 import {
   CreateProductRequest,
   FindProductRequest,
+  ListProductsRequest,
+  ListProductsResponse,
   ProductResponse,
   PRODUCTS_SERVICE_NAME,
   ProductsServiceController,
@@ -15,6 +17,16 @@ import { ProductsService } from './products.service';
 @Controller()
 export class ProductsController implements ProductsServiceController {
   constructor(private readonly productsService: ProductsService) {}
+
+  @GrpcMethod(PRODUCTS_SERVICE_NAME, 'ListProducts')
+  listProducts(
+    request: ListProductsRequest,
+  ):
+    | Promise<ListProductsResponse>
+    | Observable<ListProductsResponse>
+    | ListProductsResponse {
+    return this.productsService.listProducts(request);
+  }
   @GrpcMethod(PRODUCTS_SERVICE_NAME, 'GetProduct')
   getProduct(
     request: FindProductRequest,

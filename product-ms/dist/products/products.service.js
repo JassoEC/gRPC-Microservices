@@ -19,6 +19,28 @@ let ProductsService = class ProductsService extends client_1.PrismaClient {
     async onModuleInit() {
         await this.$connect();
     }
+    listProducts(request) {
+        const { ids } = request;
+        const promise = this.product.findMany({
+            where: {
+                id: {
+                    in: ids,
+                },
+            },
+        });
+        return (0, rxjs_1.from)(promise).pipe((0, rxjs_1.map)((products) => ({
+            products: products.map((product) => ({
+                productId: product.id,
+                name: product.name,
+                description: product.description,
+                price: product.price,
+                availableQuantity: product.available_quantity,
+            })),
+        })), (0, rxjs_1.catchError)((error) => {
+            this.logger.error(error);
+            throw new microservices_1.RpcException(`Could not list products`);
+        }));
+    }
     getProduct(request) {
         const promise = this.product.findUnique({
             where: { id: request.productId },

@@ -1,8 +1,10 @@
 syntax  = "proto3";
 
-package orders;
+import "products.proto";
 
 option go_package = "protos/orders";
+
+package orders;
 
 service OrdersService {
   rpc GetOrder (GetOrderRequest) returns (OrderResponse) {}
@@ -29,6 +31,7 @@ message OrderItem {
   string product_id = 1;
   int32 quantity = 2;
   string order_id = 3;
+  products.Product product = 4;
 }
 
 message CreateOrderRequest {
