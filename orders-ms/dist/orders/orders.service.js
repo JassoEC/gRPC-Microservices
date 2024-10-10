@@ -11,10 +11,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrdersService = void 0;
 const common_1 = require("@nestjs/common");
-const client_1 = require("@prisma/client");
-const rxjs_1 = require("rxjs");
-const products_service_1 = require("./products/products.service");
 const microservices_1 = require("@nestjs/microservices");
+const rxjs_1 = require("rxjs");
+const client_1 = require("@prisma/client");
+const products_service_1 = require("./products/products.service");
 let OrdersService = class OrdersService extends client_1.PrismaClient {
     constructor(products) {
         super();
@@ -26,10 +26,18 @@ let OrdersService = class OrdersService extends client_1.PrismaClient {
     }
     createOrder(request) {
         const { items } = request;
+        const products = [];
         return new rxjs_1.Observable((observer) => {
             items.forEach((item) => {
-                const product = this.products.getProduct(item.productId);
-                product.subscribe({
+                const promise = this.products.getProduct(item.productId);
+                const product$ = (0, rxjs_1.from)(promise).pipe((0, rxjs_1.map)(({ product }) => product));
+                product$.subscribe({
+                    next: (product) => {
+                        if (product.availableQuantity < item.quantity) {
+                            observer.error(new microservices_1.RpcException(`Not enough stock for product ${item.productId}`));
+                        }
+                        products.push(product);
+                    },
                     error: (error) => observer.error(new microservices_1.RpcException(error)),
                 });
             });
@@ -58,6 +66,7 @@ let OrdersService = class OrdersService extends client_1.PrismaClient {
                         productId: item.productId,
                         quantity: item.quantity,
                         orderId: item.orderId,
+                        product: products.find((product) => product.productId === item.productId),
                     })),
                 };
                 observer.next(response);
@@ -66,22 +75,30 @@ let OrdersService = class OrdersService extends client_1.PrismaClient {
         });
     }
     getOrder(request) {
-        const orderPromise = this.order.findUnique({
-            where: { id: request.orderId },
-            include: { items: true },
+        return new rxjs_1.Observable((observer) => {
+            const orderPromise = this.order.findUnique({
+                where: { id: request.orderId },
+                include: { items: true },
+            });
+            orderPromise.then((order) => (0, rxjs_1.firstValueFrom)(this.products.getOrderProducts(order.items.map((item) => item.productId)))
+                .then((products) => {
+                observer.next({
+                    order: {
+                        orderId: order.id,
+                        createdAt: order.createdAt,
+                        delivered: order.delivered,
+                    },
+                    items: order.items.map((item) => ({
+                        productId: item.productId,
+                        quantity: item.quantity,
+                        orderId: item.orderId,
+                        product: products.products.find((product) => product.productId === item.productId),
+                    })),
+                });
+                observer.complete();
+            })
+                .catch((error) => observer.error(new microservices_1.RpcException(error))));
         });
-        return (0, rxjs_1.from)(orderPromise).pipe((0, rxjs_1.map)((order) => ({
-            order: {
-                orderId: order.id,
-                createdAt: order.createdAt,
-                delivered: order.delivered,
-            },
-            items: order.items.map((item) => ({
-                productId: item.productId,
-                quantity: item.quantity,
-                orderId: item.orderId,
-            })),
-        })));
     }
 };
 exports.OrdersService = OrdersService;

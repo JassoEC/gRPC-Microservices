@@ -1,4 +1,5 @@
 import { Observable } from "rxjs";
+import { Product } from "./products";
 export declare const protobufPackage = "orders";
 export interface GetOrderRequest {
     orderId: string;
@@ -16,6 +17,7 @@ export interface OrderItem {
     productId: string;
     quantity: number;
     orderId: string;
+    product: Product | undefined;
 }
 export interface CreateOrderRequest {
     createdAt: string;

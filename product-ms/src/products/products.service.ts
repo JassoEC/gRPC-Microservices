@@ -83,6 +83,7 @@ export class ProductsService
         name: request.name,
         description: request.description,
         price: request.price,
+        available_quantity: request.availableQuantity,
       },
     });
 

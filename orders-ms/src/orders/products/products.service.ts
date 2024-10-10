@@ -21,4 +21,8 @@ export class ProductsService implements OnModuleInit {
   getProduct(productId: string) {
     return this.service.getProduct({ productId });
   }
+
+  getOrderProducts(ids: string[]) {
+    return this.service.listProducts({ ids });
+  }
 }

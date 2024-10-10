@@ -64,6 +64,7 @@ let ProductsService = class ProductsService extends client_1.PrismaClient {
                 name: request.name,
                 description: request.description,
                 price: request.price,
+                available_quantity: request.availableQuantity,
             },
         });
         return (0, rxjs_1.from)(promise).pipe((0, rxjs_1.map)((product) => ({
