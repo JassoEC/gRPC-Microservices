@@ -11,17 +11,20 @@ export interface Product {
     name: string;
     description: string;
     price: number;
+    availableQuantity: number;
 }
 export interface CreateProductRequest {
     name: string;
     description: string;
     price: number;
+    availableQuantity: number;
 }
 export interface UpdateProductRequest {
     productId: string;
     name: string;
     description: string;
     price: number;
+    availableQuantity: number;
 }
 export declare const PRODUCTS_PACKAGE_NAME = "products";
 export interface ProductsServiceClient {

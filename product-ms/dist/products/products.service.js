@@ -29,6 +29,7 @@ let ProductsService = class ProductsService extends client_1.PrismaClient {
                 name: product.name,
                 description: product.description,
                 price: product.price,
+                availableQuantity: product.available_quantity,
             },
         })), (0, rxjs_1.catchError)((error) => {
             this.logger.error(error);
@@ -49,6 +50,7 @@ let ProductsService = class ProductsService extends client_1.PrismaClient {
                 name: product.name,
                 description: product.description,
                 price: product.price,
+                availableQuantity: product.available_quantity,
             },
         })), (0, rxjs_1.catchError)((error) => {
             this.logger.error(error);
@@ -70,6 +72,7 @@ let ProductsService = class ProductsService extends client_1.PrismaClient {
                 name: product.name,
                 description: product.description,
                 price: product.price,
+                availableQuantity: product.available_quantity,
             },
         })), (0, rxjs_1.catchError)((error) => {
             this.logger.error(error);
@@ -86,6 +89,7 @@ let ProductsService = class ProductsService extends client_1.PrismaClient {
                 name: product.name,
                 description: product.description,
                 price: product.price,
+                availableQuantity: product.available_quantity,
             },
         })), (0, rxjs_1.catchError)((error) => {
             this.logger.error(error);

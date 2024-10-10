@@ -24,12 +24,14 @@ message Product {
   string name = 2;
   string description = 3;
   float price = 4;
+  int32 available_quantity = 5;
 }
 
 message CreateProductRequest {
   string name = 1;
   string description = 2;
   float price = 3;
+  int32 available_quantity = 4;
 }
 
 message UpdateProductRequest {
@@ -37,4 +39,5 @@ message UpdateProductRequest {
   string name = 2;
   string description = 3;
   float price = 4;
+  int32 available_quantity = 5;
 }
