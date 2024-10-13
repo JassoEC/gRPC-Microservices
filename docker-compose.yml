@@ -31,20 +31,20 @@ services:
     networks:
       - grpc-network
 
-  products-service:
-    build:
-      context: ./product-ms
-    restart: always
-    container_name: products_microservice
-    ports:
-      - '5500:5000'
-    depends_on:
-      - productsdb
-    environment:
-      - DATABASE_URL=postgresql://products:products@productsdb:5434/products?schema=public&conection_timeout=300
-    command: "npm run start:dev"
-    networks:
-      - grpc-network
+  # products-service:
+  #   build:
+  #     context: ./product-ms
+  #   restart: always
+  #   container_name: products_microservice
+  #   ports:
+  #     - '5500:5000'
+  #   depends_on:
+  #     - productsdb
+  #   environment:
+  #     - DATABASE_URL=postgresql://products:products@productsdb:5434/products?schema=public&conection_timeout=300
+  #   command: "npm run start:dev"
+  #   networks:
+  #     - grpc-network
 
 networks:
   grpc-network:

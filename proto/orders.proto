@@ -2,7 +2,7 @@ syntax  = "proto3";
 
 import "products.proto";
 
-option go_package = "protos/orders";
+option go_package = "github.com/jassoec/grpc-microservices/protogen/golang/orders";
 
 package orders;
 
