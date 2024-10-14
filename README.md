@@ -10,7 +10,7 @@
 2. Order Service (Nest.JS):
 
    - [x] Implement functionality to place an order. An order should reference one or more products and specify the quantities.
-   - [x] Implement a simple order listing functionality, which returns a list of all orders with product details.
+   - [ ] Implement a simple order listing functionality, which returns a list of all orders with product details.
    - [x] Implement an interservice call to Product service using gRPC to ensure that the product exists and has quantity available.
 
 3. API Gateway (Golang):

@@ -9,17 +9,15 @@ import (
 
 func main() {
 
-	// productConn, err := grpc.Dial("products:5500", grpc.WithInsecure())
-	productConn, err := grpc.Dial("localhost:5500", grpc.WithInsecure())
+	productConn, err := grpc.Dial("products:5500", grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("Failed to connect to Product gRPC service: %v", err)
+		log.Fatalf("Failed to connect to products gRPC service: %v", err)
 	}
 	defer productConn.Close()
 
-	// orderConn, err := grpc.Dial("orders:6000", grpc.WithInsecure())
-	orderConn, err := grpc.Dial("localhost:6000", grpc.WithInsecure())
+	orderConn, err := grpc.Dial("orders:6000", grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("Failed to connect to Order gRPC service: %v", err)
+		log.Fatalf("Failed to connect to orders gRPC service: %v", err)
 	}
 	defer orderConn.Close()
 
