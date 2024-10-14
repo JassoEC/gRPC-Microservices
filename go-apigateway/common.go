@@ -12,6 +12,13 @@ type grpcClients struct {
 	orderClient   pbOrder.OrdersServiceClient
 }
 
+type ProductData struct {
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Price       float32 `json:"price"`
+	Quantity    int32   `json:"quantity"`
+}
+
 func NewGRPCClients(productConn *grpc.ClientConn, orderConn *grpc.ClientConn) *grpcClients {
 	return &grpcClients{
 		productClient: pbProduct.NewProductsServiceClient(productConn),

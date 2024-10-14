@@ -16,7 +16,7 @@ COPY ./product-ms .
 RUN npm run build
 
 # Expose the port your app runs on
-EXPOSE 5000
+EXPOSE 5500
 
 # Command to run your app using npm
 CMD ["npm", "run", "start:prod"]

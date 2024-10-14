@@ -9,7 +9,8 @@ import (
 
 func main() {
 
-	productConn, err := grpc.Dial("products:5000", grpc.WithInsecure())
+	// productConn, err := grpc.Dial("products:5500", grpc.WithInsecure())
+	productConn, err := grpc.Dial("localhost:5500", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Failed to connect to Product gRPC service: %v", err)
 	}
@@ -26,11 +27,8 @@ func main() {
 
 	grpcClients := NewGRPCClients(productConn, orderConn)
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("API Gateway\n"))
-	})
-
-	mux.HandleFunc("/products", grpcClients.handleProductRequest)
+	mux.HandleFunc("/products", grpcClients.handleProductsRequest)
+	mux.HandleFunc("/products/{id}", grpcClients.handleProductRequest)
 	mux.HandleFunc("/orders", grpcClients.handleOrderRequest)
 
 	log.Println("API Gateway listening on :8080")
