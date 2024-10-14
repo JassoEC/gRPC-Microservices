@@ -9,115 +9,71 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductsService = void 0;
 const common_1 = require("@nestjs/common");
 const microservices_1 = require("@nestjs/microservices");
-const client_1 = require("@prisma/client");
 const rxjs_1 = require("rxjs");
-let ProductsService = class ProductsService extends client_1.PrismaClient {
+const uuid_1 = require("uuid");
+let ProductsService = class ProductsService {
     constructor() {
-        super(...arguments);
         this.logger = new common_1.Logger('ProductsService');
-    }
-    async onModuleInit() {
-        await this.$connect();
+        this.productsDB = [];
     }
     listProducts(request) {
         const { ids } = request;
-        const promise = this.product.findMany({
-            where: {
-                id: {
-                    in: ids,
-                },
-            },
+        const products = this.productsDB.filter((product) => ids.includes(product.productId));
+        return new rxjs_1.Observable((observer) => {
+            observer.next({ products });
+            observer.complete();
         });
-        return (0, rxjs_1.from)(promise).pipe((0, rxjs_1.map)((products) => ({
-            products: products.map((product) => ({
-                productId: product.id,
-                name: product.name,
-                description: product.description,
-                price: product.price,
-                availableQuantity: product.available_quantity,
-            })),
-        })), (0, rxjs_1.catchError)((error) => {
-            this.logger.error(error);
-            throw new microservices_1.RpcException(`Could not list products`);
-        }));
     }
     getProduct(request) {
-        const promise = this.product.findUnique({
-            where: { id: request.productId },
-        });
-        return (0, rxjs_1.from)(promise).pipe((0, rxjs_1.map)((product) => ({
-            product: {
-                productId: product.id,
-                name: product.name,
-                description: product.description,
-                price: product.price,
-                availableQuantity: product.available_quantity,
-            },
-        })), (0, rxjs_1.catchError)((error) => {
-            this.logger.error(error);
+        const product = this.productsDB.find((product) => product.productId === request.productId);
+        if (!product) {
             throw new microservices_1.RpcException(`Could not find product with ID ${request.productId}`);
-        }));
+        }
+        return new rxjs_1.Observable((observer) => {
+            observer.next({ product });
+            observer.complete();
+        });
     }
     createProduct(request) {
-        const promise = this.product.create({
-            data: {
-                name: request.name,
-                description: request.description,
-                price: request.price,
-                available_quantity: request.availableQuantity,
-            },
+        this.logger.log(`Creating product: ${JSON.stringify(request)}`);
+        const product = {
+            productId: (0, uuid_1.v4)(),
+            name: request.name,
+            description: request.description,
+            price: request.price,
+            availableQuantity: request.availableQuantity,
+        };
+        this.productsDB.push(product);
+        return new rxjs_1.Observable((observer) => {
+            observer.next({ product });
+            observer.complete();
         });
-        return (0, rxjs_1.from)(promise).pipe((0, rxjs_1.map)((product) => ({
-            product: {
-                productId: product.id,
-                name: product.name,
-                description: product.description,
-                price: product.price,
-                availableQuantity: product.available_quantity,
-            },
-        })), (0, rxjs_1.catchError)((error) => {
-            this.logger.error(error);
-            throw new microservices_1.RpcException(`Could not create product`);
-        }));
     }
     updateProduct(request) {
-        const promise = this.product.update({
-            where: { id: request.productId },
-            data: {
-                name: request.name,
-                description: request.description,
-                price: request.price,
-            },
+        const product = this.productsDB.find((product) => product.productId === request.productId);
+        if (!product) {
+            throw new microservices_1.RpcException(`Could not find product with ID ${request.productId}`);
+        }
+        return new rxjs_1.Observable((observer) => {
+            product.name = request.name;
+            product.description = request.description;
+            product.price = request.price;
+            product.availableQuantity = request.availableQuantity;
+            observer.next({ product });
+            observer.complete();
         });
-        return (0, rxjs_1.from)(promise).pipe((0, rxjs_1.map)((product) => ({
-            product: {
-                productId: product.id,
-                name: product.name,
-                description: product.description,
-                price: product.price,
-                availableQuantity: product.available_quantity,
-            },
-        })), (0, rxjs_1.catchError)((error) => {
-            this.logger.error(error);
-            throw new microservices_1.RpcException(`Could not update product`);
-        }));
     }
     deleteProduct(request) {
-        const promise = this.product.delete({
-            where: { id: request.productId },
+        const productIndex = this.productsDB.findIndex((product) => product.productId === request.productId);
+        if (productIndex === -1) {
+            throw new microservices_1.RpcException(`Could not find product with ID ${request.productId}`);
+        }
+        const product = this.productsDB[productIndex];
+        this.productsDB.splice(productIndex, 1);
+        return new rxjs_1.Observable((observer) => {
+            observer.next({ product });
+            observer.complete();
         });
-        return (0, rxjs_1.from)(promise).pipe((0, rxjs_1.map)((product) => ({
-            product: {
-                productId: product.id,
-                name: product.name,
-                description: product.description,
-                price: product.price,
-                availableQuantity: product.available_quantity,
-            },
-        })), (0, rxjs_1.catchError)((error) => {
-            this.logger.error(error);
-            throw new microservices_1.RpcException(`Could not delete product`);
-        }));
     }
 };
 exports.ProductsService = ProductsService;

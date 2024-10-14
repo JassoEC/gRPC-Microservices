@@ -10,13 +10,20 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const products_module_1 = require("./products/products.module");
 const orders_module_1 = require("./orders/orders.module");
+const core_1 = require("@nestjs/core");
+const nestjs_grpc_exceptions_1 = require("nestjs-grpc-exceptions");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         controllers: [],
-        providers: [],
+        providers: [
+            {
+                provide: core_1.APP_FILTER,
+                useClass: nestjs_grpc_exceptions_1.GrpcServerExceptionFilter,
+            },
+        ],
         imports: [products_module_1.ProductsModule, orders_module_1.OrdersModule],
     })
 ], AppModule);

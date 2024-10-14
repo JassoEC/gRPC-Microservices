@@ -1,51 +1,25 @@
-version: "3"
 
 services:
-  ordersdb:
-    container_name: ordersdb
-    image: postgres:16.2
-    restart: always
-    volumes:
-      - ./data/orders:/var/lib/postgresql/data
+  products:
+    build:
+      dockerfile: ./products.Dockerfile
     ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: orders
-      POSTGRES_PASSWORD: orders
-      POSTGRES_DB: orders
-    networks:
-      - grpc-network
-
-  productsdb:
-    container_name: productsdb
-    image: postgres:16.2
+      - '5000:5000'
     restart: always
-    volumes:
-      - ./data/products:/var/lib/postgresql/data
+  orders:
+    build:
+      dockerfile: ./orders.Dockerfile
     ports:
-      - "5434:5432"
-    environment:
-      POSTGRES_USER: products
-      POSTGRES_PASSWORD: products
-      POSTGRES_DB: products
-    networks:
-      - grpc-network
-
-  # products-service:
-  #   build:
-  #     context: ./product-ms
-  #   restart: always
-  #   container_name: products_microservice
-  #   ports:
-  #     - '5500:5000'
-  #   depends_on:
-  #     - productsdb
-  #   environment:
-  #     - DATABASE_URL=postgresql://products:products@productsdb:5434/products?schema=public&conection_timeout=300
-  #   command: "npm run start:dev"
-  #   networks:
-  #     - grpc-network
-
-networks:
-  grpc-network:
-    driver: bridge
+      - '6000:6000'
+    restart: always
+  api_gateway:
+    build:
+      dockerfile: ./gateway.Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      orders:
+        condition: service_started
+      products:
+        condition: service_started
+    restart: always

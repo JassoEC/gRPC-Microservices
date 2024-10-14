@@ -15,7 +15,7 @@ import { ORDERS_PACKAGE_NAME } from 'src/types/orders';
         name: ORDERS_PACKAGE_NAME,
         transport: Transport.GRPC,
         options: {
-          url: 'localhost:5001',
+          url: 'localhost:6000',
           package: 'orders',
           protoPath: join(__dirname, '../../../proto/orders.proto'),
         },

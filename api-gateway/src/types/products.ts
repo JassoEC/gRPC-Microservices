@@ -10,11 +10,11 @@ import { Observable } from "rxjs";
 
 export const protobufPackage = "products";
 
-export interface GetProductRequest {
+export interface FindProductRequest {
   productId: string;
 }
 
-export interface GetProductResponse {
+export interface ProductResponse {
   product: Product | undefined;
 }
 
@@ -23,23 +23,67 @@ export interface Product {
   name: string;
   description: string;
   price: number;
+  availableQuantity: number;
+}
+
+export interface CreateProductRequest {
+  name: string;
+  description: string;
+  price: number;
+  availableQuantity: number;
+}
+
+export interface UpdateProductRequest {
+  productId: string;
+  name: string;
+  description: string;
+  price: number;
+  availableQuantity: number;
+}
+
+export interface ListProductsRequest {
+  ids: string[];
+}
+
+export interface ListProductsResponse {
+  products: Product[];
 }
 
 export const PRODUCTS_PACKAGE_NAME = "products";
 
 export interface ProductsServiceClient {
-  getProduct(request: GetProductRequest): Observable<GetProductResponse>;
+  getProduct(request: FindProductRequest): Observable<ProductResponse>;
+
+  createProduct(request: CreateProductRequest): Observable<ProductResponse>;
+
+  updateProduct(request: UpdateProductRequest): Observable<ProductResponse>;
+
+  deleteProduct(request: FindProductRequest): Observable<ProductResponse>;
+
+  listProducts(request: ListProductsRequest): Observable<ListProductsResponse>;
 }
 
 export interface ProductsServiceController {
-  getProduct(
-    request: GetProductRequest,
-  ): Promise<GetProductResponse> | Observable<GetProductResponse> | GetProductResponse;
+  getProduct(request: FindProductRequest): Promise<ProductResponse> | Observable<ProductResponse> | ProductResponse;
+
+  createProduct(
+    request: CreateProductRequest,
+  ): Promise<ProductResponse> | Observable<ProductResponse> | ProductResponse;
+
+  updateProduct(
+    request: UpdateProductRequest,
+  ): Promise<ProductResponse> | Observable<ProductResponse> | ProductResponse;
+
+  deleteProduct(request: FindProductRequest): Promise<ProductResponse> | Observable<ProductResponse> | ProductResponse;
+
+  listProducts(
+    request: ListProductsRequest,
+  ): Promise<ListProductsResponse> | Observable<ListProductsResponse> | ListProductsResponse;
 }
 
 export function ProductsServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["getProduct"];
+    const grpcMethods: string[] = ["getProduct", "createProduct", "updateProduct", "deleteProduct", "listProducts"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("ProductsService", method)(constructor.prototype[method], method, descriptor);

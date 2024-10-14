@@ -22,8 +22,20 @@ let ProductsService = class ProductsService {
     onModuleInit() {
         this.service = this.client.getService(products_1.PRODUCTS_SERVICE_NAME);
     }
-    findOne(id) {
-        return this.service.getProduct({ productId: id });
+    getProduct(request) {
+        return this.service.getProduct(request);
+    }
+    createProduct(request) {
+        return this.service.createProduct(request);
+    }
+    updateProduct(request) {
+        return this.service.updateProduct(request);
+    }
+    deleteProduct(request) {
+        return this.service.deleteProduct(request);
+    }
+    listProducts(request) {
+        return this.service.listProducts(request);
     }
 };
 exports.ProductsService = ProductsService;

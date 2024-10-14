@@ -27,6 +27,7 @@ exports.OrdersModule = OrdersModule = __decorate([
                     name: products_1.PRODUCTS_PACKAGE_NAME,
                     transport: microservices_1.Transport.GRPC,
                     options: {
+                        url: 'products:5000',
                         package: 'products',
                         protoPath: (0, path_1.join)(__dirname, '../../../proto/products.proto'),
                     },

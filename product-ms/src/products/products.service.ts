@@ -1,161 +1,114 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
-import { PrismaClient } from '@prisma/client';
-import { catchError, from, map, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
+import { v4 as uuidv4 } from 'uuid';
 
 import {
   CreateProductRequest,
   FindProductRequest,
   ListProductsRequest,
   ListProductsResponse,
+  Product,
   ProductResponse,
   ProductsServiceClient,
   UpdateProductRequest,
 } from 'src/types';
 
 @Injectable()
-export class ProductsService
-  extends PrismaClient
-  implements OnModuleInit, ProductsServiceClient
-{
+export class ProductsService implements ProductsServiceClient {
   private logger = new Logger('ProductsService');
 
-  async onModuleInit() {
-    await this.$connect();
-  }
+  // temporary in-memory database
+  private productsDB: Product[] = [];
 
   listProducts(request: ListProductsRequest): Observable<ListProductsResponse> {
     const { ids } = request;
-    const promise = this.product.findMany({
-      where: {
-        id: {
-          in: ids,
-        },
-      },
-    });
 
-    return from(promise).pipe(
-      map((products) => ({
-        products: products.map((product) => ({
-          productId: product.id,
-          name: product.name,
-          description: product.description,
-          price: product.price,
-          availableQuantity: product.available_quantity,
-        })),
-      })),
-      catchError((error) => {
-        this.logger.error(error);
-        throw new RpcException(`Could not list products`);
-      }),
+    const products = this.productsDB.filter((product) =>
+      ids.includes(product.productId),
     );
+
+    return new Observable((observer) => {
+      observer.next({ products });
+      observer.complete();
+    });
   }
 
   getProduct(request: FindProductRequest): Observable<ProductResponse> {
-    const promise = this.product.findUnique({
-      where: { id: request.productId },
-    });
-
-    return from(promise).pipe(
-      map(
-        (product): ProductResponse => ({
-          product: {
-            productId: product.id,
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            availableQuantity: product.available_quantity,
-          },
-        }),
-      ),
-      catchError((error) => {
-        this.logger.error(error);
-        throw new RpcException(
-          `Could not find product with ID ${request.productId}`,
-        );
-      }),
+    const product = this.productsDB.find(
+      (product) => product.productId === request.productId,
     );
+
+    if (!product) {
+      throw new RpcException(
+        `Could not find product with ID ${request.productId}`,
+      );
+    }
+
+    return new Observable((observer) => {
+      observer.next({ product });
+      observer.complete();
+    });
   }
 
   createProduct(request: CreateProductRequest): Observable<ProductResponse> {
-    const promise = this.product.create({
-      data: {
-        name: request.name,
-        description: request.description,
-        price: request.price,
-        available_quantity: request.availableQuantity,
-      },
-    });
+    this.logger.log(`Creating product: ${JSON.stringify(request)}`);
 
-    return from(promise).pipe(
-      map(
-        (product): ProductResponse => ({
-          product: {
-            productId: product.id,
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            availableQuantity: product.available_quantity,
-          },
-        }),
-      ),
-      catchError((error) => {
-        this.logger.error(error);
-        throw new RpcException(`Could not create product`);
-      }),
-    );
+    const product: Product = {
+      productId: uuidv4(),
+      name: request.name,
+      description: request.description,
+      price: request.price,
+      availableQuantity: request.availableQuantity,
+    };
+
+    this.productsDB.push(product);
+
+    return new Observable((observer) => {
+      observer.next({ product });
+      observer.complete();
+    });
   }
 
   updateProduct(request: UpdateProductRequest): Observable<ProductResponse> {
-    const promise = this.product.update({
-      where: { id: request.productId },
-      data: {
-        name: request.name,
-        description: request.description,
-        price: request.price,
-      },
-    });
-
-    return from(promise).pipe(
-      map(
-        (product): ProductResponse => ({
-          product: {
-            productId: product.id,
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            availableQuantity: product.available_quantity,
-          },
-        }),
-      ),
-      catchError((error) => {
-        this.logger.error(error);
-        throw new RpcException(`Could not update product`);
-      }),
+    const product = this.productsDB.find(
+      (product) => product.productId === request.productId,
     );
+
+    if (!product) {
+      throw new RpcException(
+        `Could not find product with ID ${request.productId}`,
+      );
+    }
+
+    return new Observable((observer) => {
+      product.name = request.name;
+      product.description = request.description;
+      product.price = request.price;
+      product.availableQuantity = request.availableQuantity;
+
+      observer.next({ product });
+      observer.complete();
+    });
   }
 
   deleteProduct(request: FindProductRequest): Observable<ProductResponse> {
-    const promise = this.product.delete({
-      where: { id: request.productId },
-    });
-
-    return from(promise).pipe(
-      map(
-        (product): ProductResponse => ({
-          product: {
-            productId: product.id,
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            availableQuantity: product.available_quantity,
-          },
-        }),
-      ),
-      catchError((error) => {
-        this.logger.error(error);
-        throw new RpcException(`Could not delete product`);
-      }),
+    const productIndex = this.productsDB.findIndex(
+      (product) => product.productId === request.productId,
     );
+
+    if (productIndex === -1) {
+      throw new RpcException(
+        `Could not find product with ID ${request.productId}`,
+      );
+    }
+
+    const product = this.productsDB[productIndex];
+    this.productsDB.splice(productIndex, 1);
+
+    return new Observable((observer) => {
+      observer.next({ product });
+      observer.complete();
+    });
   }
 }

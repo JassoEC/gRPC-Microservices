@@ -1,10 +1,10 @@
-syntax  = "proto3";
+syntax = "proto3";
+
+package orders;
 
 import "products.proto";
 
 option go_package = "github.com/jassoec/grpc-microservices/protogen/golang/orders";
-
-package orders;
 
 service OrdersService {
   rpc GetOrder (GetOrderRequest) returns (OrderResponse) {}

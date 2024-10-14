@@ -26,6 +26,10 @@ func main() {
 
 	grpcClients := NewGRPCClients(productConn, orderConn)
 
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("API Gateway\n"))
+	})
+
 	mux.HandleFunc("/products", grpcClients.handleProductRequest)
 	mux.HandleFunc("/orders", grpcClients.handleOrderRequest)
 

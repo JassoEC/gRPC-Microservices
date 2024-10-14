@@ -1,12 +1,13 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
-import { firstValueFrom, from, map, Observable } from 'rxjs';
-
-import { PrismaClient } from '@prisma/client';
+import { from, map, Observable } from 'rxjs';
+import { v4 as uuidv4 } from 'uuid';
 
 import {
   CreateOrderRequest,
   GetOrderRequest,
+  Order,
+  OrderItem,
   OrderResponse,
   OrdersServiceClient,
 } from 'src/types/orders';
@@ -14,19 +15,13 @@ import { ProductsService } from './products/products.service';
 import { Product } from 'src/types/products';
 
 @Injectable()
-export class OrdersService
-  extends PrismaClient
-  implements OnModuleInit, OrdersServiceClient
-{
-  private logger = new Logger('OrdersService');
+export class OrdersService implements OrdersServiceClient {
+  private logger: Logger = new Logger(OrdersService.name);
 
-  constructor(private readonly products: ProductsService) {
-    super();
-  }
+  private ordersDB: Order[] = [];
+  private itemsDB: OrderItem[] = [];
 
-  async onModuleInit() {
-    await this.$connect();
-  }
+  constructor(private readonly products: ProductsService) {}
 
   createOrder(request: CreateOrderRequest): Observable<OrderResponse> {
     const { items } = request;
@@ -51,79 +46,86 @@ export class OrdersService
             }
             products.push(product);
           },
-          error: (error) => observer.error(new RpcException(error)),
+          error: (error) => {
+            this.logger.error(`Error fetching product: ${error}`);
+            observer.error(new RpcException(error));
+          },
         });
       });
 
-      this.order
-        .create({
-          data: {
-            delivered: false,
-            createdAt: new Date(request.createdAt).toString(),
-            items: {
-              create: items.map((item) => ({
-                productId: item.productId,
-                quantity: item.quantity,
-              })),
-            },
-          },
-          include: { items: true },
-        })
-        .then((order) => {
-          const response = {
-            order: {
-              orderId: order.id,
-              createdAt: order.createdAt,
-              delivered: order.delivered,
-            },
-            items: order.items.map((item) => ({
-              productId: item.productId,
-              quantity: item.quantity,
-              orderId: item.orderId,
-              product: products.find(
-                (product) => product.productId === item.productId,
-              ),
-            })),
-          };
-          observer.next(response);
-          observer.complete();
+      const order = {
+        orderId: uuidv4(),
+        createdAt: new Date(request.createdAt).toString(),
+        delivered: false,
+      };
+
+      items.forEach((item) => {
+        this.itemsDB.push({
+          orderId: order.orderId,
+          productId: item.productId,
+          quantity: item.quantity,
+          product: products.find(
+            (product) => product.productId === item.productId,
+          ),
         });
+      });
+
+      this.ordersDB.push(order);
+
+      const response: OrderResponse = {
+        order,
+        items: this.itemsDB
+          .filter((item) => item.orderId === order.orderId)
+          .map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            orderId: item.orderId,
+            product: products.find(
+              (product) => product.productId === item.productId,
+            ),
+          })),
+      };
+
+      observer.next(response);
+      observer.complete();
     });
   }
 
   getOrder(request: GetOrderRequest): Observable<OrderResponse> {
-    return new Observable((observer) => {
-      const orderPromise = this.order.findUnique({
-        where: { id: request.orderId },
-        include: { items: true },
-      });
+    const order = this.ordersDB.find(
+      (order) => order.orderId === request.orderId,
+    );
 
-      orderPromise.then((order) =>
-        firstValueFrom(
-          this.products.getOrderProducts(
-            order.items.map((item) => item.productId),
-          ),
-        )
-          .then((products) => {
-            observer.next({
-              order: {
-                orderId: order.id,
-                createdAt: order.createdAt,
-                delivered: order.delivered,
-              },
-              items: order.items.map((item) => ({
-                productId: item.productId,
-                quantity: item.quantity,
-                orderId: item.orderId,
-                product: products.products.find(
-                  (product) => product.productId === item.productId,
-                ),
-              })),
-            });
-            observer.complete();
-          })
-          .catch((error) => observer.error(new RpcException(error))),
+    if (!order) {
+      this.logger.error(`Order with id ${request.orderId} not found`);
+      throw new RpcException(`Order with id ${request.orderId} not found`);
+    }
+
+    return new Observable((observer) => {
+      const items = this.itemsDB.filter(
+        (item) => item.orderId === request.orderId,
       );
+
+      const products$ = this.products.getOrderProducts(
+        items.map((item) => item.productId),
+      );
+
+      products$.subscribe((prodObserver) => {
+        const response: OrderResponse = {
+          order,
+          items: items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            orderId: item.orderId,
+            product: prodObserver.products.find(
+              (product) => product.productId === item.productId,
+            ),
+          })),
+        };
+
+        observer.next(response);
+        observer.complete();
+      });
     });
   }
 }

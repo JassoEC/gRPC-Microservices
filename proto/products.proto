@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-option go_package = "github.com/jassoec/grpc-microservices/protogen/golang/products";
-
 package products;
+
+option go_package = "github.com/jassoec/grpc-microservices/protogen/golang/products";
 
 service ProductsService {
   rpc GetProduct (FindProductRequest) returns (ProductResponse) {}
