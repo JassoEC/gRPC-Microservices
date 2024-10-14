@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
-import { from, map, Observable } from 'rxjs';
+import { catchError, from, map, Observable } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
@@ -33,6 +33,10 @@ export class OrdersService implements OrdersServiceClient {
         const promise = this.products.getProduct(item.productId);
         const product$ = from(promise).pipe(
           map(({ product }): Product => product),
+          catchError((error) => {
+            this.logger.error(`Error fetching product: ${error}`);
+            throw new RpcException(error);
+          }),
         );
 
         product$.subscribe({

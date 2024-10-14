@@ -26,10 +26,10 @@ func main() {
 
 	grpcClients := NewGRPCClients(productConn, orderConn)
 
-	mux.HandleFunc("/products", grpcClients.handleProductsRequest)
 	mux.HandleFunc("/products/{id}", grpcClients.handleProductRequest)
-	mux.HandleFunc("/orders", grpcClients.handleOrdersRequest)
+	mux.HandleFunc("/products", grpcClients.handleProductsRequest)
 	mux.HandleFunc("/orders/{id}", grpcClients.handleOrderRequest)
+	mux.HandleFunc("/orders", grpcClients.handleOrdersRequest)
 
 	log.Println("API Gateway listening on :8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {

@@ -16,7 +16,7 @@ import { ProductsService } from './products/products.service';
         name: PRODUCTS_PACKAGE_NAME,
         transport: Transport.GRPC,
         options: {
-          url: 'products:5000',
+          url: 'products:5500',
           package: 'products',
           protoPath: join(__dirname, '../../../proto/products.proto'),
         },
