@@ -16,7 +16,8 @@ func main() {
 	}
 	defer productConn.Close()
 
-	orderConn, err := grpc.Dial("orders:6000", grpc.WithInsecure())
+	// orderConn, err := grpc.Dial("orders:6000", grpc.WithInsecure())
+	orderConn, err := grpc.Dial("localhost:6000", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Failed to connect to Order gRPC service: %v", err)
 	}
@@ -29,7 +30,8 @@ func main() {
 
 	mux.HandleFunc("/products", grpcClients.handleProductsRequest)
 	mux.HandleFunc("/products/{id}", grpcClients.handleProductRequest)
-	mux.HandleFunc("/orders", grpcClients.handleOrderRequest)
+	mux.HandleFunc("/orders", grpcClients.handleOrdersRequest)
+	mux.HandleFunc("/orders/{id}", grpcClients.handleOrderRequest)
 
 	log.Println("API Gateway listening on :8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
