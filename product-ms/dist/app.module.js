@@ -9,12 +9,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const products_module_1 = require("./products/products.module");
+const typeorm_1 = require("@nestjs/typeorm");
+const config_1 = require("./config");
+const Product_1 = require("./products/entities/Product");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [products_module_1.ProductsModule],
+        imports: [
+            products_module_1.ProductsModule,
+            typeorm_1.TypeOrmModule.forRoot({
+                type: 'postgres',
+                host: config_1.envs.DB_HOST,
+                port: config_1.envs.DB_PORT,
+                password: config_1.envs.DB_PASSWORD,
+                username: config_1.envs.DB_USER,
+                database: config_1.envs.DB_NAME,
+                entities: [Product_1.Product],
+                synchronize: true,
+                logging: true,
+            }),
+        ],
         controllers: [],
         providers: [],
     })

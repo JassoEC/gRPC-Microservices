@@ -1,11 +1,15 @@
-import { Observable } from 'rxjs';
-import { CreateProductRequest, FindProductRequest, ListProductsRequest, ListProductsResponse, ProductResponse, ProductsServiceClient, UpdateProductRequest } from 'src/types';
-export declare class ProductsService implements ProductsServiceClient {
+import { CreateProductRequest, FindProductRequest, ListProductsRequest, ListProductsResponse, Product, UpdateProductRequest } from 'src/types';
+import { Product as ProductEntity } from './entities/Product';
+import { Repository } from 'typeorm';
+export declare class ProductsService {
+    private readonly productRepository;
+    constructor(productRepository: Repository<ProductEntity>);
     private logger;
     private productsDB;
-    listProducts(request: ListProductsRequest): Observable<ListProductsResponse>;
-    getProduct(request: FindProductRequest): Observable<ProductResponse>;
-    createProduct(request: CreateProductRequest): Observable<ProductResponse>;
-    updateProduct(request: UpdateProductRequest): Observable<ProductResponse>;
-    deleteProduct(request: FindProductRequest): Observable<ProductResponse>;
+    listProducts(request: ListProductsRequest): Promise<ListProductsResponse>;
+    getProduct(request: FindProductRequest): Promise<Product>;
+    createProduct(request: CreateProductRequest): Promise<Product>;
+    updateProduct(request: UpdateProductRequest): Promise<Product>;
+    deleteProduct(request: FindProductRequest): Promise<Product>;
+    protected entityToProtoBuf(data: ProductEntity): Product;
 }

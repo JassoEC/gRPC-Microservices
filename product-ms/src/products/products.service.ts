@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
-import { Observable } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
@@ -9,35 +8,39 @@ import {
   ListProductsRequest,
   ListProductsResponse,
   Product,
-  ProductResponse,
-  ProductsServiceClient,
   UpdateProductRequest,
 } from 'src/types';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Product as ProductEntity } from './entities/Product';
+import { Repository } from 'typeorm';
 
 @Injectable()
-export class ProductsService implements ProductsServiceClient {
+export class ProductsService {
+  constructor(
+    @InjectRepository(ProductEntity)
+    private readonly productRepository: Repository<ProductEntity>,
+  ) {}
+
   private logger = new Logger('ProductsService');
 
   // temporary in-memory database
   private productsDB: Product[] = [];
 
-  listProducts(request: ListProductsRequest): Observable<ListProductsResponse> {
+  async listProducts(
+    request: ListProductsRequest,
+  ): Promise<ListProductsResponse> {
     const { ids } = request;
 
     const products = this.productsDB.filter((product) =>
       ids.includes(product.productId),
     );
-
-    return new Observable((observer) => {
-      observer.next({ products });
-      observer.complete();
-    });
+    return { products };
   }
 
-  getProduct(request: FindProductRequest): Observable<ProductResponse> {
-    const product = this.productsDB.find(
-      (product) => product.productId === request.productId,
-    );
+  async getProduct(request: FindProductRequest): Promise<Product> {
+    const product = await this.productRepository.findOne({
+      where: { id: request.productId },
+    });
 
     if (!product) {
       throw new RpcException(
@@ -45,35 +48,28 @@ export class ProductsService implements ProductsServiceClient {
       );
     }
 
-    return new Observable((observer) => {
-      observer.next({ product });
-      observer.complete();
-    });
+    return this.entityToProtoBuf(product);
   }
 
-  createProduct(request: CreateProductRequest): Observable<ProductResponse> {
+  async createProduct(request: CreateProductRequest): Promise<Product> {
     this.logger.log(`Creating product: ${JSON.stringify(request)}`);
 
-    const product: Product = {
-      productId: uuidv4(),
-      name: request.name,
-      description: request.description,
-      price: request.price,
-      availableQuantity: request.availableQuantity,
-    };
+    const product = new ProductEntity();
 
-    this.productsDB.push(product);
+    product.name = request.name;
+    product.description = request.description;
+    product.price = request.price;
+    product.availableQuantity = request.availableQuantity;
 
-    return new Observable((observer) => {
-      observer.next({ product });
-      observer.complete();
-    });
+    const productCreated = await this.productRepository.save(product);
+
+    return this.entityToProtoBuf(productCreated);
   }
 
-  updateProduct(request: UpdateProductRequest): Observable<ProductResponse> {
-    const product = this.productsDB.find(
-      (product) => product.productId === request.productId,
-    );
+  async updateProduct(request: UpdateProductRequest): Promise<Product> {
+    const product = await this.productRepository.findOne({
+      where: { id: request.productId },
+    });
 
     if (!product) {
       throw new RpcException(
@@ -81,34 +77,39 @@ export class ProductsService implements ProductsServiceClient {
       );
     }
 
-    return new Observable((observer) => {
-      product.name = request.name;
-      product.description = request.description;
-      product.price = request.price;
-      product.availableQuantity = request.availableQuantity;
+    product.name = request.name;
+    product.description = request.description;
+    product.price = request.price;
+    product.availableQuantity = request.availableQuantity;
 
-      observer.next({ product });
-      observer.complete();
-    });
+    const updated = await this.productRepository.save(product);
+
+    return this.entityToProtoBuf(updated);
   }
 
-  deleteProduct(request: FindProductRequest): Observable<ProductResponse> {
-    const productIndex = this.productsDB.findIndex(
-      (product) => product.productId === request.productId,
-    );
+  async deleteProduct(request: FindProductRequest): Promise<Product> {
+    const product = await this.productRepository.findOne({
+      where: { id: request.productId },
+    });
 
-    if (productIndex === -1) {
+    if (!product) {
       throw new RpcException(
         `Could not find product with ID ${request.productId}`,
       );
     }
 
-    const product = this.productsDB[productIndex];
-    this.productsDB.splice(productIndex, 1);
+    await this.productRepository.delete(product);
 
-    return new Observable((observer) => {
-      observer.next({ product });
-      observer.complete();
-    });
+    return this.entityToProtoBuf(product);
+  }
+
+  protected entityToProtoBuf(data: ProductEntity): Product {
+    return {
+      productId: data.id,
+      name: data.name,
+      description: data.description,
+      price: data.price,
+      availableQuantity: data.availableQuantity,
+    };
   }
 }

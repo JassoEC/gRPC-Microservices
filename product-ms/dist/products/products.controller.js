@@ -39,31 +39,31 @@ __decorate([
     (0, microservices_1.GrpcMethod)(types_1.PRODUCTS_SERVICE_NAME, 'ListProducts'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Object)
+    __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "listProducts", null);
 __decorate([
     (0, microservices_1.GrpcMethod)(types_1.PRODUCTS_SERVICE_NAME, 'GetProduct'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Object)
+    __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "getProduct", null);
 __decorate([
     (0, microservices_1.GrpcMethod)(types_1.PRODUCTS_SERVICE_NAME, 'CreateProduct'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Object)
+    __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "createProduct", null);
 __decorate([
     (0, microservices_1.GrpcMethod)(types_1.PRODUCTS_SERVICE_NAME, 'UpdateProduct'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Object)
+    __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "updateProduct", null);
 __decorate([
     (0, microservices_1.GrpcMethod)(types_1.PRODUCTS_SERVICE_NAME, 'DeleteProduct'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Object)
+    __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "deleteProduct", null);
 exports.ProductsController = ProductsController = __decorate([
     (0, common_1.Controller)(),

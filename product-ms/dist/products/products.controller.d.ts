@@ -1,12 +1,11 @@
-import { Observable } from 'rxjs';
-import { CreateProductRequest, FindProductRequest, ListProductsRequest, ListProductsResponse, ProductResponse, ProductsServiceController, UpdateProductRequest } from 'src/types';
+import { CreateProductRequest, FindProductRequest, ListProductsRequest, ListProductsResponse, Product, ProductsServiceController, UpdateProductRequest } from 'src/types';
 import { ProductsService } from './products.service';
 export declare class ProductsController implements ProductsServiceController {
     private readonly productsService;
     constructor(productsService: ProductsService);
-    listProducts(request: ListProductsRequest): Promise<ListProductsResponse> | Observable<ListProductsResponse> | ListProductsResponse;
-    getProduct(request: FindProductRequest): Promise<ProductResponse> | Observable<ProductResponse> | ProductResponse;
-    createProduct(request: CreateProductRequest): Promise<ProductResponse> | Observable<ProductResponse> | ProductResponse;
-    updateProduct(request: UpdateProductRequest): Promise<ProductResponse> | Observable<ProductResponse> | ProductResponse;
-    deleteProduct(request: FindProductRequest): Promise<ProductResponse> | Observable<ProductResponse> | ProductResponse;
+    listProducts(request: ListProductsRequest): Promise<ListProductsResponse>;
+    getProduct(request: FindProductRequest): Promise<Product>;
+    createProduct(request: CreateProductRequest): Promise<Product>;
+    updateProduct(request: UpdateProductRequest): Promise<Product>;
+    deleteProduct(request: FindProductRequest): Promise<Product>;
 }

@@ -3,9 +3,6 @@ export declare const protobufPackage = "products";
 export interface FindProductRequest {
     productId: string;
 }
-export interface ProductResponse {
-    product: Product | undefined;
-}
 export interface Product {
     productId: string;
     name: string;
@@ -34,17 +31,17 @@ export interface ListProductsResponse {
 }
 export declare const PRODUCTS_PACKAGE_NAME = "products";
 export interface ProductsServiceClient {
-    getProduct(request: FindProductRequest): Observable<ProductResponse>;
-    createProduct(request: CreateProductRequest): Observable<ProductResponse>;
-    updateProduct(request: UpdateProductRequest): Observable<ProductResponse>;
-    deleteProduct(request: FindProductRequest): Observable<ProductResponse>;
+    getProduct(request: FindProductRequest): Observable<Product>;
+    createProduct(request: CreateProductRequest): Observable<Product>;
+    updateProduct(request: UpdateProductRequest): Observable<Product>;
+    deleteProduct(request: FindProductRequest): Observable<Product>;
     listProducts(request: ListProductsRequest): Observable<ListProductsResponse>;
 }
 export interface ProductsServiceController {
-    getProduct(request: FindProductRequest): Promise<ProductResponse> | Observable<ProductResponse> | ProductResponse;
-    createProduct(request: CreateProductRequest): Promise<ProductResponse> | Observable<ProductResponse> | ProductResponse;
-    updateProduct(request: UpdateProductRequest): Promise<ProductResponse> | Observable<ProductResponse> | ProductResponse;
-    deleteProduct(request: FindProductRequest): Promise<ProductResponse> | Observable<ProductResponse> | ProductResponse;
+    getProduct(request: FindProductRequest): Promise<Product> | Observable<Product> | Product;
+    createProduct(request: CreateProductRequest): Promise<Product> | Observable<Product> | Product;
+    updateProduct(request: UpdateProductRequest): Promise<Product> | Observable<Product> | Product;
+    deleteProduct(request: FindProductRequest): Promise<Product> | Observable<Product> | Product;
     listProducts(request: ListProductsRequest): Promise<ListProductsResponse> | Observable<ListProductsResponse> | ListProductsResponse;
 }
 export declare function ProductsServiceControllerMethods(): (constructor: Function) => void;
