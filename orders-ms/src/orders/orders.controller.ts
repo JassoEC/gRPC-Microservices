@@ -1,12 +1,11 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
-import { Observable } from 'rxjs';
 
 import { OrdersService } from './orders.service';
 import {
   CreateOrderRequest,
   GetOrderRequest,
-  OrderResponse,
+  Order,
   ORDERS_SERVICE_NAME,
   OrdersServiceController,
 } from 'src/types/orders';
@@ -16,16 +15,12 @@ export class OrdersController implements OrdersServiceController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @GrpcMethod(ORDERS_SERVICE_NAME, 'CreateOrder')
-  createOrder(
-    request: CreateOrderRequest,
-  ): Promise<OrderResponse> | Observable<OrderResponse> | OrderResponse {
+  createOrder(request: CreateOrderRequest): Promise<Order> {
     return this.ordersService.createOrder(request);
   }
 
   @GrpcMethod(ORDERS_SERVICE_NAME, 'GetOrder')
-  getOrder(
-    request: GetOrderRequest,
-  ): Promise<OrderResponse> | Observable<OrderResponse> | OrderResponse {
+  getOrder(request: GetOrderRequest): Promise<Order> {
     return this.ordersService.getOrder(request);
   }
 }

@@ -10,10 +10,14 @@ exports.OrdersModule = void 0;
 const path_1 = require("path");
 const common_1 = require("@nestjs/common");
 const microservices_1 = require("@nestjs/microservices");
+const typeorm_1 = require("@nestjs/typeorm");
 const products_1 = require("../types/products");
 const orders_service_1 = require("./orders.service");
 const orders_controller_1 = require("./orders.controller");
 const products_service_1 = require("./products/products.service");
+const Order_entity_1 = require("./entities/Order.entity");
+const OrderItem_entity_1 = require("./entities/OrderItem.entity");
+const config_1 = require("../../config");
 let OrdersModule = class OrdersModule {
 };
 exports.OrdersModule = OrdersModule;
@@ -27,12 +31,13 @@ exports.OrdersModule = OrdersModule = __decorate([
                     name: products_1.PRODUCTS_PACKAGE_NAME,
                     transport: microservices_1.Transport.GRPC,
                     options: {
-                        url: 'products:5000',
+                        url: config_1.envs.PRODUCTS_SERVICE_URL,
                         package: 'products',
-                        protoPath: (0, path_1.join)(__dirname, '../../../proto/products.proto'),
+                        protoPath: (0, path_1.join)(__dirname, '../../../../proto/products.proto'),
                     },
                 },
             ]),
+            typeorm_1.TypeOrmModule.forFeature([Order_entity_1.Order, OrderItem_entity_1.OrderItem]),
         ],
     })
 ], OrdersModule);

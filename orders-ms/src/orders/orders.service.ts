@@ -1,135 +1,116 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { RpcException } from '@nestjs/microservices';
-import { catchError, from, map, Observable } from 'rxjs';
-import { v4 as uuidv4 } from 'uuid';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ClientGrpc, RpcException } from '@nestjs/microservices';
+import { catchError, firstValueFrom } from 'rxjs';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
+import { CreateOrderRequest, GetOrderRequest, Order } from 'src/types/orders';
 import {
-  CreateOrderRequest,
-  GetOrderRequest,
-  Order,
-  OrderItem,
-  OrderResponse,
-  OrdersServiceClient,
-} from 'src/types/orders';
-import { ProductsService } from './products/products.service';
-import { Product } from 'src/types/products';
+  Product,
+  PRODUCTS_PACKAGE_NAME,
+  PRODUCTS_SERVICE_NAME,
+  ProductsServiceClient,
+} from 'src/types/products';
+import { Order as OrderEntity } from './entities/Order.entity';
+import { OrderItem as OrderItemEntity } from './entities/OrderItem.entity';
 
 @Injectable()
-export class OrdersService implements OrdersServiceClient {
-  private logger: Logger = new Logger(OrdersService.name);
+export class OrdersService implements OnModuleInit {
+  private productsService: ProductsServiceClient;
 
-  private ordersDB: Order[] = [];
-  private itemsDB: OrderItem[] = [];
+  constructor(
+    @Inject(PRODUCTS_PACKAGE_NAME) private readonly client: ClientGrpc,
+    @InjectRepository(OrderEntity)
+    private readonly ordersRepository: Repository<OrderEntity>,
+    @InjectRepository(OrderItemEntity)
+    private readonly itemsRepository: Repository<OrderItemEntity>,
+  ) {}
 
-  constructor(private readonly products: ProductsService) {}
-
-  createOrder(request: CreateOrderRequest): Observable<OrderResponse> {
-    const { items } = request;
-
-    const products: Product[] = [];
-
-    return new Observable((observer) => {
-      items.forEach((item) => {
-        const promise = this.products.getProduct(item.productId);
-        const product$ = from(promise).pipe(
-          map(({ product }): Product => product),
-          catchError((error) => {
-            this.logger.error(`Error fetching product: ${error}`);
-            throw new RpcException(error);
-          }),
-        );
-
-        product$.subscribe({
-          next: (product) => {
-            if (product.availableQuantity < item.quantity) {
-              observer.error(
-                new RpcException(
-                  `Not enough stock for product ${item.productId}`,
-                ),
-              );
-            }
-            products.push(product);
-          },
-          error: (error) => {
-            this.logger.error(`Error fetching product: ${error}`);
-            observer.error(new RpcException(error));
-          },
-        });
-      });
-
-      const order = {
-        orderId: uuidv4(),
-        createdAt: new Date(request.createdAt).toString(),
-        delivered: false,
-      };
-
-      items.forEach((item) => {
-        this.itemsDB.push({
-          orderId: order.orderId,
-          productId: item.productId,
-          quantity: item.quantity,
-          product: products.find(
-            (product) => product.productId === item.productId,
-          ),
-        });
-      });
-
-      this.ordersDB.push(order);
-
-      const response: OrderResponse = {
-        order,
-        items: this.itemsDB
-          .filter((item) => item.orderId === order.orderId)
-          .map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            orderId: item.orderId,
-            product: products.find(
-              (product) => product.productId === item.productId,
-            ),
-          })),
-      };
-
-      observer.next(response);
-      observer.complete();
-    });
+  onModuleInit() {
+    this.productsService = this.client.getService<ProductsServiceClient>(
+      PRODUCTS_SERVICE_NAME,
+    );
   }
 
-  getOrder(request: GetOrderRequest): Observable<OrderResponse> {
-    const order = this.ordersDB.find(
-      (order) => order.orderId === request.orderId,
-    );
+  private logger: Logger = new Logger(OrdersService.name);
+
+  async createOrder(request: CreateOrderRequest): Promise<Order> {
+    try {
+      const { items } = request;
+
+      const { products } = await firstValueFrom(
+        this.productsService
+          .listProducts({
+            ids: items.map((item) => item.productId),
+          })
+          .pipe(
+            catchError((error) => {
+              this.logger.error(`Error fetching products: ${error}`);
+              throw new RpcException(`Error fetching products: ${error}`);
+            }),
+          ),
+      );
+
+      const newOrder = await this.ordersRepository.save(new OrderEntity());
+
+      await Promise.all(
+        items.map((item) => {
+          return this.itemsRepository.save({
+            order: newOrder,
+            productId: item.productId,
+            quantity: item.quantity,
+          });
+        }),
+      );
+
+      const order = await this.ordersRepository.findOne({
+        where: { id: newOrder.id },
+        relations: ['items'],
+      });
+
+      return this.entityToProtoBuf(order, products);
+    } catch (error) {
+      throw new RpcException(error);
+    }
+  }
+
+  async getOrder(request: GetOrderRequest): Promise<Order> {
+    const order = await this.ordersRepository.findOne({
+      where: { id: request.orderId },
+      relations: ['items'],
+    });
 
     if (!order) {
       this.logger.error(`Order with id ${request.orderId} not found`);
       throw new RpcException(`Order with id ${request.orderId} not found`);
     }
 
-    return new Observable((observer) => {
-      const items = this.itemsDB.filter(
-        (item) => item.orderId === request.orderId,
-      );
-
-      const products$ = this.products.getOrderProducts(
-        items.map((item) => item.productId),
-      );
-
-      products$.subscribe((prodObserver) => {
-        const response: OrderResponse = {
-          order,
-          items: items.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            orderId: item.orderId,
-            product: prodObserver.products.find(
-              (product) => product.productId === item.productId,
-            ),
-          })),
-        };
-
-        observer.next(response);
-        observer.complete();
-      });
+    const products$ = this.productsService.listProducts({
+      ids: order.items.map((item) => item.productId),
     });
+
+    if (!products$) {
+      this.logger.error(`Error fetching products`);
+      throw new RpcException(`Error fetching products`);
+    }
+
+    const products = await firstValueFrom(products$);
+
+    return this.entityToProtoBuf(order, products.products);
+  }
+
+  private entityToProtoBuf(order: OrderEntity, products: Product[]): Order {
+    return {
+      orderId: order.id,
+      createdAt: order.createdAt.toString(),
+      items: order.items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        orderId: item.orderId,
+        product: products.find(
+          (product) => product.productId === item.productId,
+        ),
+      })),
+    };
   }
 }
