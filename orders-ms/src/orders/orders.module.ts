@@ -6,14 +6,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PRODUCTS_PACKAGE_NAME } from 'src/types/products';
 import { OrdersService } from './orders.service';
 import { OrdersController } from './orders.controller';
-import { ProductsService } from './products/products.service';
 import { Order } from './entities/Order.entity';
 import { OrderItem } from './entities/OrderItem.entity';
 import { envs } from 'config';
 
 @Module({
   controllers: [OrdersController],
-  providers: [OrdersService, ProductsService],
+  providers: [OrdersService],
   imports: [
     ClientsModule.register([
       {
