@@ -5,19 +5,15 @@ package products;
 option go_package = "github.com/jassoec/grpc-microservices/protogen/golang/products";
 
 service ProductsService {
-  rpc GetProduct (FindProductRequest) returns (ProductResponse) {}
-  rpc CreateProduct (CreateProductRequest) returns (ProductResponse) {}
-  rpc UpdateProduct (UpdateProductRequest) returns (ProductResponse) {}
-  rpc DeleteProduct (FindProductRequest) returns (ProductResponse) {}
+  rpc GetProduct (FindProductRequest) returns (Product) {}
+  rpc CreateProduct (CreateProductRequest) returns (Product) {}
+  rpc UpdateProduct (UpdateProductRequest) returns (Product) {}
+  rpc DeleteProduct (FindProductRequest) returns (Product) {}
   rpc ListProducts (ListProductsRequest) returns (ListProductsResponse) {}
 }
 
 message FindProductRequest {
   string product_id = 1;
-}
-
-message ProductResponse {
-  Product product = 2;
 }
 
 message Product {

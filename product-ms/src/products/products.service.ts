@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
-import { v4 as uuidv4 } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { In, Repository } from 'typeorm';
 
 import {
   CreateProductRequest,
@@ -10,9 +11,7 @@ import {
   Product,
   UpdateProductRequest,
 } from 'src/types';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Product as ProductEntity } from './entities/Product';
-import { Repository } from 'typeorm';
 
 @Injectable()
 export class ProductsService {
@@ -23,18 +22,18 @@ export class ProductsService {
 
   private logger = new Logger('ProductsService');
 
-  // temporary in-memory database
-  private productsDB: Product[] = [];
-
   async listProducts(
     request: ListProductsRequest,
   ): Promise<ListProductsResponse> {
     const { ids } = request;
 
-    const products = this.productsDB.filter((product) =>
-      ids.includes(product.productId),
-    );
-    return { products };
+    const data = await this.productRepository.find({
+      where: {
+        id: In(ids),
+      },
+    });
+
+    return { products: data.map((product) => this.entityToProtoBuf(product)) };
   }
 
   async getProduct(request: FindProductRequest): Promise<Product> {

@@ -1,25 +1,78 @@
 
 services:
+
+  # Database for products
+  productsdb:
+    container_name: productsdb
+    image: postgres:16.2
+    restart: always
+    volumes:
+      - ./data/products:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: products
+      POSTGRES_PASSWORD: products
+      POSTGRES_DB: products
+
+  # Database for orders
+  ordersdb:
+    container_name: ordersdb
+    image: postgres:16.2
+    restart: always
+    volumes:
+      - ./data/orders:/var/lib/postgresql/data
+    ports:
+      - "5435:5435"
+    environment:
+      PGPORT: 5435
+      POSTGRES_USER: orders
+      POSTGRES_PASSWORD: orders
+      POSTGRES_DB: orders
+
+  # Products microservice
   products:
     build:
       dockerfile: ./products.Dockerfile
     ports:
       - '5500:5500'
+    environment:
+      - PORT=5500
+      - DB_HOST=productsdb
+      - DB_USER=products
+      - DB_PASSWORD=products
+      - DB_NAME=products
+      - DB_PORT=5432
     restart: always
+    depends_on:
+      - productsdb
+
+  # Orders microservice
   orders:
     build:
       dockerfile: ./orders.Dockerfile
     ports:
       - '6000:6000'
+    environment:
+      - PORT=6000
+      - DB_HOST=ordersdb
+      - DB_USER=orders
+      - DB_PASSWORD=orders
+      - DB_NAME=orders
+      - DB_PORT=5435
+      - PRODUCTS_SERVICE_URL=products:5500
     restart: always
-  api_gateway:
-    build:
-      dockerfile: ./gateway.Dockerfile
-    ports:
-      - "8080:8080"
     depends_on:
-      orders:
-        condition: service_started
-      products:
-        condition: service_started
-    restart: always
+      - ordersdb
+
+  # api_gateway:
+  #   build:
+  #     dockerfile: ./gateway.Dockerfile
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     orders:
+  #       condition: service_started
+  #     products:
+  #       condition: service_started
+  #   restart: always

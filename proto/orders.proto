@@ -1,29 +1,24 @@
 syntax = "proto3";
 
-package orders;
-
 import "products.proto";
+
+package orders;
 
 option go_package = "github.com/jassoec/grpc-microservices/protogen/golang/orders";
 
 service OrdersService {
-  rpc GetOrder (GetOrderRequest) returns (OrderResponse) {}
-  rpc CreateOrder (CreateOrderRequest) returns (OrderResponse) {}
+  rpc GetOrder (GetOrderRequest) returns (Order) {}
+  rpc CreateOrder (CreateOrderRequest) returns (Order) {}
 }
 
 message GetOrderRequest {
   string order_id = 1;
 }
 
-message OrderResponse {
-  Order order = 1;
-  repeated OrderItem items = 2;
-}
-
 message Order{
   string order_id = 1;
   string created_at = 2;
-  bool delivered = 3;
+  repeated OrderItem items = 3;
 }
 
 
@@ -35,7 +30,5 @@ message OrderItem {
 }
 
 message CreateOrderRequest {
-  string created_at = 1;
-  bool delivered = 2;
   repeated OrderItem items = 3;
 }
