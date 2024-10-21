@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"time"
 
 	pbOrder "github.com/jassoec/grpc-microservices/protogen/golang/orders"
 )
@@ -33,12 +32,9 @@ func (c *grpcClients) createOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to decode request body", http.StatusBadRequest)
 		return
 	}
-	currentTime := time.Now()
 
 	createOrderRequest := &pbOrder.CreateOrderRequest{
-		Items:     make([]*pbOrder.OrderItem, 0),
-		Delivered: false,
-		CreatedAt: currentTime.String(),
+		Items: make([]*pbOrder.OrderItem, 0),
 	}
 
 	for _, item := range orderData.Items {
