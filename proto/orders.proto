@@ -1,6 +1,10 @@
 syntax = "proto3";
 
+
 import "products.proto";
+import "google/protobuf/empty.proto";
+
+
 
 package orders;
 
@@ -9,6 +13,7 @@ option go_package = "github.com/jassoec/grpc-microservices/protogen/golang/order
 service OrdersService {
   rpc GetOrder (GetOrderRequest) returns (Order) {}
   rpc CreateOrder (CreateOrderRequest) returns (Order) {}
+  rpc ListOrders (google.protobuf.Empty)  returns (ListOrdersResponse) {}
 }
 
 message GetOrderRequest {
@@ -31,4 +36,8 @@ message OrderItem {
 
 message CreateOrderRequest {
   repeated OrderItem items = 3;
+}
+
+message ListOrdersResponse {
+  repeated Order orders = 1;
 }

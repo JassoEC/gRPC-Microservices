@@ -2,37 +2,47 @@ package main
 
 import (
 	"log"
-	"net/http"
+	"os"
 
+	"github.com/gofiber/fiber/v2"
+	"github.com/jassoec/grpc-microservices/pkg/ordersms"
+	"github.com/jassoec/grpc-microservices/pkg/productsms"
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 )
 
 func main() {
 
-	productConn, err := grpc.Dial("products:5500", grpc.WithInsecure())
+	godotenv.Load()
+
+	productsURL := os.Getenv("PRODUCTS_MICROSERVICE_URL")
+	ordersURL := os.Getenv("ORDERS_MICROSERVICE_URL")
+	port := os.Getenv("PORT")
+
+	productConn, err := grpc.Dial(productsURL, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Failed to connect to products gRPC service: %v", err)
 	}
 	defer productConn.Close()
 
-	orderConn, err := grpc.Dial("orders:6000", grpc.WithInsecure())
+	orderConn, err := grpc.Dial(ordersURL, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Failed to connect to orders gRPC service: %v", err)
 	}
 	defer orderConn.Close()
 
-	//  HTTP Server
-	mux := http.NewServeMux()
+	ordersms.InitOrderClient(orderConn)
+	productsms.InitProductClient(productConn)
 
-	grpcClients := NewGRPCClients(productConn, orderConn)
+	app := fiber.New()
+	app.Post("/orders", ordersms.CreateOrder)
+	app.Get("/orders/:id", ordersms.GetOrder)
 
-	mux.HandleFunc("/products/{id}", grpcClients.handleProductRequest)
-	mux.HandleFunc("/products", grpcClients.handleProductsRequest)
-	mux.HandleFunc("/orders/{id}", grpcClients.handleOrderRequest)
-	mux.HandleFunc("/orders", grpcClients.handleOrdersRequest)
+	app.Get("/products/:id", productsms.GetProduct)
+	app.Post("/products", productsms.CreateProduct)
+	app.Put("/products/:id", productsms.UpdateProduct)
+	app.Delete("/products/:id", productsms.DeleteProduct)
 
-	log.Println("API Gateway listening on :8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
-		log.Fatalf("Failed to start API Gateway: %v", err)
-	}
+	app.Listen(":" + port)
+
 }

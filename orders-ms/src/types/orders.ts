@@ -7,6 +7,7 @@
 /* eslint-disable */
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { Observable } from "rxjs";
+import { Empty } from "./google/protobuf/empty";
 import { Product } from "./products";
 
 export const protobufPackage = "orders";
@@ -32,23 +33,31 @@ export interface CreateOrderRequest {
   items: OrderItem[];
 }
 
+export interface ListOrdersResponse {
+  orders: Order[];
+}
+
 export const ORDERS_PACKAGE_NAME = "orders";
 
 export interface OrdersServiceClient {
   getOrder(request: GetOrderRequest): Observable<Order>;
 
   createOrder(request: CreateOrderRequest): Observable<Order>;
+
+  listOrders(request: Empty): Observable<ListOrdersResponse>;
 }
 
 export interface OrdersServiceController {
   getOrder(request: GetOrderRequest): Promise<Order> | Observable<Order> | Order;
 
   createOrder(request: CreateOrderRequest): Promise<Order> | Observable<Order> | Order;
+
+  listOrders(request: Empty): Promise<ListOrdersResponse> | Observable<ListOrdersResponse> | ListOrdersResponse;
 }
 
 export function OrdersServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["getOrder", "createOrder"];
+    const grpcMethods: string[] = ["getOrder", "createOrder", "listOrders"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("OrdersService", method)(constructor.prototype[method], method, descriptor);

@@ -65,14 +65,17 @@ services:
     depends_on:
       - ordersdb
 
-  # api_gateway:
-  #   build:
-  #     dockerfile: ./gateway.Dockerfile
-  #   ports:
-  #     - "8080:8080"
-  #   depends_on:
-  #     orders:
-  #       condition: service_started
-  #     products:
-  #       condition: service_started
-  #   restart: always
+  # API Gateway
+  api_gateway:
+    build:
+      dockerfile: ./gateway.Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - PRODUCTS_MICROSERVICE_URL=products:5500
+      - ORDERS_MICROSERVICE_URL=orders:6000
+    restart: always
+    depends_on:
+      - orders
+      - products
